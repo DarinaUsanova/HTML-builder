@@ -21,10 +21,11 @@ rl.on('line', (input) => {
 });
 
 rl.on('SIGINT', () => {
-  console.log('See you later! Exiting the program.');
+  console.log('\nSee you later! Exiting the program.');
   rl.close();
 });
 
 rl.on('close', () => {
   process.exit(0);
 });
+

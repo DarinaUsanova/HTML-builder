@@ -1,44 +1,56 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
-const stylesDir = '05-merge-styles/styles';
+async function mergeStyles() {
+  const stylesDir = '05-merge-styles/styles';
 
-if (!fs.existsSync(stylesDir)) {
-  console.error(`Directory ${stylesDir} does not exist.`);
-  process.exit(1);
-}
+  try {
+    const files = await fs.readdir(stylesDir);
+    const cssFiles = files.filter(file => path.extname(file) === '.css');
 
-const files = fs.readdirSync(stylesDir);
+    if (cssFiles.length === 0) {
+      console.error(`No CSS files found in ${stylesDir}.`);
+      process.exit(1);
+    }
 
-const cssFiles = files.filter(file => path.extname(file) === '.css');
+    const stylesArray = await Promise.all(cssFiles.map(async file => {
+      const filePath = path.join(stylesDir, file);
 
-if (cssFiles.length === 0) {
-  console.error(`No CSS files found in ${stylesDir}.`);
-  process.exit(1);
-}
+      try {
+        const fileContent = await fs.readFile(filePath, 'utf-8');
+        return fileContent;
+      } catch (error) {
+        console.error(`Error reading file ${filePath}: ${error.message}`);
+        process.exit(1);
+      }
+    }));
 
-const stylesArray = [];
+    const bundledStyles = stylesArray.join('\n');
 
-cssFiles.forEach(file => {
-  const filePath = path.join(stylesDir, file);
+    const distDir = '05-merge-styles/project-dist';
 
-  if (!fs.existsSync(filePath)) {
-    console.error(`File ${filePath} does not exist.`);
+    try {
+      await fs.mkdir(distDir, { recursive: true });
+    } catch (error) {
+      console.error(`Error creating directory ${distDir}: ${error.message}`);
+      process.exit(1);
+    }
+
+    const bundleFilePath = path.join(distDir, 'bundle.css');
+
+    try {
+      await fs.writeFile(bundleFilePath, bundledStyles, 'utf-8');
+      console.log('Styles successfully merged.');
+    } catch (error) {
+      console.error(`Error writing file ${bundleFilePath}: ${error.message}`);
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(`Error reading directory ${stylesDir}: ${error.message}`);
     process.exit(1);
   }
-
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-  stylesArray.push(fileContent);
-});
-
-const bundledStyles = stylesArray.join('\n');
-
-const distDir = '05-merge-styles/project-dist';
-
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
 }
 
-const bundleFilePath = path.join(distDir, 'bundle.css');
-fs.writeFileSync(bundleFilePath, bundledStyles, 'utf-8');
+mergeStyles();
+
 

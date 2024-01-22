@@ -3,7 +3,7 @@ const path = require('path');
 
 async function copyDir() {
   const sourceDir = '04-copy-directory/files';
-  const destinationDir = 'files-copy';
+  const destinationDir = '04-copy-directory/files-copy';
 
   try {
     await fs.mkdir(destinationDir, { recursive: true });
