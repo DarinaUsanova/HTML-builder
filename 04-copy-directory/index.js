@@ -6,6 +6,7 @@ async function copyDir() {
   const destinationDir = '04-copy-directory/files-copy';
 
   try {
+    await fs.rm(destinationDir, { recursive: true, force: true });
     await fs.mkdir(destinationDir, { recursive: true });
 
     const files = await fs.readdir(sourceDir);
@@ -24,3 +25,4 @@ async function copyDir() {
 }
 
 copyDir();
+
